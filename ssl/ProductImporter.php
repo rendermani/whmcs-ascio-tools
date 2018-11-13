@@ -1,7 +1,7 @@
 <?php
 namespace ascio\whmcs\ssl;
 require_once("CertificateConfig.php");
-require_once("../Error.php");
+require_once(__DIR__."/../lib/Error.php");
 use ascio\ssl as ssl; 
 use ascio\whmcs\ssl\AscioException;
 use ascio\ssl\CertConfig;
@@ -22,8 +22,12 @@ class ProductImporter {
         $this->config = new ssl\CertificateConfig();
         
     }
-    public function readCSV($file) {
-        $contents = file_get_contents($file);        
+    public function readCSV($file) {        
+        $contents = file_get_contents($file); 
+        if(!isset($contents)) {
+            throw new AscioException("File not found: ".$file,404);
+            
+        }
         return $this->parseCSV($contents);
     }
     public function parseCSV($contents,$method="Register") {
@@ -75,7 +79,7 @@ class ProductImporter {
         $this->data[$cert->method][$cert->id] = $cert;
         return $cert;
     }
-    public function setProducts(array $products) {
+    public function setProducts($products) {
         $this->productIds  = $products;
     }
     public function setMargin($margin) {

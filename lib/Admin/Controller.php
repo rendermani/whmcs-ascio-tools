@@ -1,8 +1,8 @@
 <?php
 
 namespace WHMCS\Module\Addon\AddonModule\Admin;
-require_once(__DIR__."/../../../../servers/asciossl/lib/ProductImporter.php");
-require_once(__DIR__."/../../../../servers/asciossl/lib/Installer.php");
+require_once(__DIR__."/../../ssl/ProductImporter.php");
+require_once(__DIR__."/../../ssl/Installer/Installer.php");
 use ascio\whmcs\ssl\ProductImporter;
 use ascio\whmcs\ssl\Installer;
 
@@ -108,7 +108,7 @@ class Controller {
                $errors[]="extension not allowed, please choose a JPEG or PNG file.";
             }            
             if(empty($errors)==true){
-                $file = __DIR__."/../../import/".$file_name;
+                $file = __DIR__."/../../import/products.csv";
                 move_uploaded_file($file_tmp,$file);                
                 $pi->readCSV($file);
                 echo $inputForm;

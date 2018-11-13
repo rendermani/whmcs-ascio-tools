@@ -1,6 +1,6 @@
 <?php
 namespace ascio\ssl;
-require_once("Error.php");
+require_once(__DIR__."/../lib/Error.php");
 use ascio\whmcs\ssl;
 use ascio\whmcs\ssl\AscioException;
 
@@ -10,7 +10,7 @@ class CertificateConfig {
 
     public function __construct()
     {
-        $contents = file_get_contents(__DIR__."/../config/cert-def.json");
+        $contents = file_get_contents(__DIR__."/cert-def.json");
         foreach(json_decode($contents) as $key => $cert) {
             $this->defs[$key] = new CertConfig($cert);
         };

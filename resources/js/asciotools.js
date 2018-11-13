@@ -14,7 +14,7 @@ class AscioImporter {
     calulateSsl () {
         var certIds=this.getCertIds();
         $.ajax({
-            url: "../modules/addons/asciotools/ssl-import.php?action=preview",
+            url: "../modules/addons/asciotools/ssl/import.php?action=preview",
             datatype : "json",
             data: { 
                 margin: $("#margin").val(),
@@ -23,12 +23,12 @@ class AscioImporter {
             }
           }).done(function(data) {            
             $("#preview").html(data.html)
-          });         
+          });          
     } 
     importSsl() {
         var certIds=this.getCertIds();
         $.ajax({
-            url: "../modules/addons/asciotools/ssl-import.php?action=import",
+            url: "../modules/addons/asciotools/ssl/import.php?action=import",
             datatype : "json",
             data: { 
                 products: certIds,
