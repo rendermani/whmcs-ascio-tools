@@ -1,11 +1,9 @@
 <?php
 namespace ascio\whmcs\tools;
-require_once(realpath(dirname(__FILE__))."/../../../../init.php");
 require_once("Error.php");
 
 use ascio\whmcs\ssl\AscioSystemException;
 use Illuminate\Database\Capsule\Manager as Capsule;
-
 
 class Versions {
     protected $moduleConfig;
@@ -16,73 +14,77 @@ class Versions {
     protected $remoteVersions;
     protected $storageType ="fs";
     protected $gitUrl;
-    function __construct($moduleId,$gitUrl)
+    protected $localPath;     
+    function __construct($moduleId,$gitUrl,$localPath)
     {
-        $file = __DIR__."/../".$moduleId."/module.json";        
+        $this->localPath = $localPath;
+        $file = $localPath."/module.json";        
         $cfg = file_get_contents($file);
         if(!$cfg) throw new AscioSystemException("File not found ".$file);                   
         $this->moduleConfig = json_decode($cfg);
 
-        $file = $gitUrl;        
-        if(!$cfg) throw new AscioSystemException("File not found ".$gitUrl);                   
+        $cfg = file_get_contents($gitUrl);   
+        if(!$cfg) throw new AscioSystemException("URL not found ".$gitUrl);                   
         $this->remoteModuleConfig = json_decode($cfg);
         
         $storageType = $this->storageType;         
         $versions = $this->remoteModuleConfig->$storageType->versions;
-        foreach($versions as $key => $version) {
-            $this->versions["v".$version->version] = new Version($this->localVersion,$version->version);            
-        }
+
         $this->localVersion = reset($this->moduleConfig->$storageType->versions)->version;        
+        $this->localVersion2 = reset($this->moduleConfig->$storageType->versions)->version;  
         $this->remoteVersion = reset($versions)->version;
-        var_dump($this->remoteVersion);
-        $this->remoteVersions = $version;
+        $this->remoteVersions = $versions;
+
+        foreach($versions as $key => $version) {
+            $this->versions["v".$version->version] = new Version($this->getLocalVersion(),$version->version);            
+        }
     }
     public function setGit($gitUrl) {
         $this->getUrl($gitUrl);
     }
     public function getLocalVersion () {
-        return $this->localVersion;
+        return $this->localVersion ? $this->localVersion : 0 ;
     }
     public function needsUpdate() : bool {
-        if(count($this->getUpdates()) > 0 ) return true;
+        if($this->localVersion < $this->remoteVersion) return true;
         return false; 
+    }
+    public function isUpToDate() : bool {
+        return !$this->needsUpdate();
     }
     public function getStatus() {
         $v = reset($this->versions)->remote; 
 
-        return "Local: ".$this->localVersion.", Remote: ".$this->remoteVersion;
+        return "Local: ".$this->getLocalVersion().", Remote: ".$this->remoteVersion;
     }
     public function getUpdates() {
         $updates = [];
+        $needsUpdate = false; 
         foreach(array_reverse($this->versions) as $key => $version) {
             /**
              * @var Version $version
              */
-            if($version->needsUpdate()) {
-                $updates[] = $version->remote;
-                echo "needs update: ".$version->getStatus()."\n";
-            } else {
-                echo "no update: ".$version->getStatus()."\n";
+            if($needsUpdate) {
+                $updates[] = $version->remote;             
             }
+            if($version->needsUpdate()) {
+                $needsUpdate = true;
+            } 
         }
         return $updates;
     }
 }
 class DbVersions extends Versions {
     protected $storageType ="db";
-    protected $settingsTable;
-    protected $defaultTable; 
+    private $dbReadComplete = false;
 
-    public function __construct($moduleId,$gitUrl) {
-        parent::__construct($moduleId,$gitUrl);
+    public function __construct($moduleId,$gitUrl,$localPath) {
+        parent::__construct($moduleId,$gitUrl,$localPath);
     }
-    public function setTables($settingsTable,$defaultTable) {
-        $this->settingsTable = $settingsTable;
-        $this->defaultTable = $defaultTable; 
-    }
-    public function getLocalVersion () {
-        if(!isset($this->settingsTable)) throw new AscioSystemException("No Settings-Table provided");
-        $v =  Capsule::table($this->settingsTable)
+    public function getDb ($settingsTable,$defaultTable) {
+        if($this->dbReadComplete) return $this->localVersion;
+        if(!isset($settingsTable)) throw new AscioSystemException("No Settings-Table provided");
+        $v =  Capsule::table($settingsTable)
         ->where(["name"=>"DbVersion"])
         ->first();
         if($v) {
@@ -90,12 +92,16 @@ class DbVersions extends Versions {
         } else {
             $this->localVersion = 0;            
         }
-        if($this->localVersion == 0 && isset($this->defaultTable)) {
+        if($this->localVersion == 0) {
             $v =  Capsule::table("INFORMATION_SCHEMA.TABLES")
-            ->where(["TABLE_NAME"=>$this->defaultTable])
+            ->where(["TABLE_NAME"=>$defaultTable])
             ->first();
             if($v) $this->localVersion = 0.1;
         }
+        foreach($versions as $key => $version) {
+            $this->versions["v".$version->version] = new Version($this->getLocalVersion(),$version->version);            
+        }
+        $this->dbReadComplete = true;
         return $this->localVersion;
     }
 
@@ -114,20 +120,9 @@ class Version {
     }
     public function needsUpdate() {
         if(!$this->local) return true;
-        return !($this->local >= $this->remote);
+        return !($this->local <= $this->remote);
     }
     public function getStatus() {
         return "Local: ".$this->local.", Remote: ".$this->remote;
     }
 }
-
-$versions = new DbVersions("ssl","https://raw.githubusercontent.com/rendermani/whmcs-ascio-tools/master/ssl/module.json");
-$versions->setTables("mod_asciossl_settings","mod_asciossl");
-$versions->getLocalVersion();
-//var_dump($versions->getUpdates());
-$versions->getStatus();
-
-$versions = new FsVersions("ssl","https://raw.githubusercontent.com/rendermani/whmcs-ascio-tools/master/ssl/module.json");
-$versions->getLocalVersion();
-//var_dump($versions->getUpdates());
-$versions->getStatus();

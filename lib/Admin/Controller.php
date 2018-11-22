@@ -31,7 +31,9 @@ class Controller {
 ';
     }
     public function install () {
-        $installer = new Installer(); 
+        $local = __DIR__."/../../../../servers/asciossl";;
+        $gitBase = "rendermani/ascio-ssl-whmcs-plugin";
+        $installer = new Installer($gitBase,$local,"ssl"); 
         $html = '<h2>Ascio SSL Installer</h2>';
         $html .= '<h3>Requirements</h3>';
         $html .=  $installer->showRequirements();
