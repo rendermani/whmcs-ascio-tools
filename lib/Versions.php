@@ -31,7 +31,6 @@ class Versions {
         $versions = $this->remoteModuleConfig->$storageType->versions;
 
         $this->localVersion = reset($this->moduleConfig->$storageType->versions)->version;        
-        $this->localVersion2 = reset($this->moduleConfig->$storageType->versions)->version;  
         $this->remoteVersion = reset($versions)->version;
         $this->remoteVersions = $versions;
 
@@ -84,6 +83,13 @@ class DbVersions extends Versions {
     public function getDb ($settingsTable,$defaultTable) {
         if($this->dbReadComplete) return $this->localVersion;
         if(!isset($settingsTable)) throw new AscioSystemException("No Settings-Table provided");
+        $existingTable = Capsule::table("INFORMATION_SCHEMA.TABLES")
+        ->where(["TABLE_NAME"=>$settingsTable])
+        ->first();
+        if(!$existingTable) {
+            $this->localVersion = 0; 
+            return 0;
+        }
         $v =  Capsule::table($settingsTable)
         ->where(["name"=>"DbVersion"])
         ->first();

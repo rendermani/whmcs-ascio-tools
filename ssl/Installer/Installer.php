@@ -94,7 +94,7 @@ class Installer {
         $zip->close();
     }
     protected function createDatabase() {
-        $url = $this->gitBase."/install/intall.sql";
+        $url = $this->gitBase."/install/install.sql";
         $sql = file_get_contents($url);
         if($sql) {
             $this->executeDbTransaction($sql);
@@ -123,7 +123,7 @@ class Installer {
             $pdo->commit();
         } catch (\Exception $e) {
             $pdo->rollBack();
-            throw new AscioSystemException($e->getMessage());            
+            throw new AscioSystemException($e->getMessage()."\n".$sql);            
         }
     }
 }
@@ -161,7 +161,13 @@ Class Requirements {
             $html .= $requirement->getHtml(); 
         }
         if($this->isSystemOk()) {
-            $html .= '<br/><div class="form-group"><button role="button" type="button" class="btn btn-success" id="update">Update</button></div>';
+            
+            if($this->isOk()) {
+                $html .= "<br/><p>Everything is up-to-date.</p>" ;
+            } else {
+                $html .= '<br/><div class="form-group"><button role="button" type="button" class="btn btn-success" id="update">Update</button></div>';
+            }
+            
         } else {
             $html .= "<br/><p>Please fix requirements before continuing.</p>" ;
         }
@@ -171,6 +177,12 @@ Class Requirements {
     public function isSystemOk() {
         foreach($this->requirements as $key => $requirement) {
             if(!$requirement->isValid() && $requirement->isSystemRequirement()) return false; 
+        }
+        return true; 
+    }
+    public function isOk() {
+        foreach($this->requirements as $key => $requirement) {
+            if(!$requirement->isValid()) return false; 
         }
         return true; 
     }

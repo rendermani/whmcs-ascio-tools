@@ -13,7 +13,7 @@ header('Content-Type: application/json');
 
 $_GET["action"] = "db";
 
-$git = "https://raw.githubusercontent.com/rendermani/ascio-ssl-whmcs-plugin/master";
+$git = "rendermani/ascio-ssl-whmcs-plugin";
 $local = __DIR__."/../../../../servers/asciossl";
 $installer = new Installer($git,$local,$_GET["module"]); 
 try {
