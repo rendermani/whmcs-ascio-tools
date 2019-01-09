@@ -25,7 +25,6 @@ class Installer {
     protected $localRelPath;
     public function __construct($gitBase,$localPath,$module)
     {   
-        //todo: set this to ssl
         $this->gitBase = "https://raw.githubusercontent.com/".$gitBase."/master"; 
         $this->gitClone = "https://github.com/".$gitBase."/archive/master.zip";
         $this->localPath = realpath($localPath);
