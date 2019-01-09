@@ -90,7 +90,6 @@ class ProductImporter {
     }
 
     public function get($type=null,$method="Register") {
-        // todo: get types like: ev,dv,ov,md,wildcard;
         return $this->data[$method];
     }
     public function getSans(CertConfig $cert) : CertConfig {
@@ -290,7 +289,6 @@ class ProductImporter {
         return $id; 
     }
     private function createSanPricing(ssl\CertConfig $cert) {
-        // todo doublecheck productConfigOptionsSubId? 
         $cert->getPrices()->calculate($this->margin,$this->roundstep);
         $currency = $cert->currency = "EUR" ? 2 : 1;
         $cert->currencyId = $currency;
@@ -343,7 +341,6 @@ class ProductImporter {
         return $id; 
     }
     private function createProduct(ssl\CertConfig $cert) {
-        // TODO Config options, credentials
         $cert->getPrices()->calculate($this->margin,$this->roundstep);
         $table =  Capsule::table("tblproducts");
         $filter = [
