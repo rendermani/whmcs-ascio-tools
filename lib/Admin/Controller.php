@@ -3,8 +3,11 @@
 namespace WHMCS\Module\Addon\AddonModule\Admin;
 require_once(__DIR__."/../../ssl/ProductImporter.php");
 require_once(__DIR__."/../../ssl/Installer/Installer.php");
+require_once(__DIR__."/../../lib/Settings.php");
 use ascio\whmcs\ssl\ProductImporter;
 use ascio\whmcs\ssl\Installer;
+use ascio\whmcs\tools\Settings;
+use ascio\whmcs\tools\SettingsTest;
 
 
 /**
@@ -27,7 +30,6 @@ class Controller {
         $LANG = $vars['_lang']; // an array of the currently loaded language variables
         return '
         <h2>Please select action</h2>
-        <p>abc</p>
 ';
     }
     public function install () {
@@ -39,6 +41,11 @@ class Controller {
         $html .=  $installer->showRequirements();
         return $html;
 
+    }
+    public function settings($vars) {
+        $modulelink = $vars['modulelink'];
+        $settings = new Settings("mod_asciossl_settings");
+        return $settings->viewHtml();
     }
     public function showUpload($vars)
     {
