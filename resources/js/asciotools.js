@@ -82,7 +82,50 @@ class AscioInstaller {
         
     }
 }
-
+class AscioSettings {
+    validate () {
+        var self  = this;
+        $("#result").html("<br/><br/>");
+        this.validateAccount("live","domain");
+        this.validateAccount("testing","domain");
+        this.validateAccount("testing","dns");             
+    }
+    validateAccount (environment,type) {
+        var self = this; 
+        this.setIcon(environment,type,"time");
+        return $.ajax({
+            url: "../modules/addons/asciotools/validate-settings.php?environment="+environment+"&type="+type,
+            datatype : "json",
+            method : "post",
+            data:  $("#settingsform").serialize()        
+          }).done(function(data) {
+            var icon = data.error ? "remove" : "ok";
+            self.setIcon(environment,type,icon);
+            $("#result").html( $("#result").html() + data.message);        
+        })
+    }
+    setIcon(environment,type,icon) {
+        var color = "gray";
+        switch(icon) {
+            case "ok": color = "darkgreen"; break;
+            case "remove": color = "darkred"; break;
+            default: break;
+        }
+        if(type=="dns") {
+            var dns = $("#progress-live-dns");
+            dns.attr("class","glyphicon glyphicon-"+icon);
+            dns.attr("style","color:"+color);
+        } else {
+            var account = $("#progress-"+environment+"-"+type+"-account");
+            account.attr("class","glyphicon glyphicon-"+icon);
+            account.attr("style","color:"+color);
+            var password = $("#progress-"+environment+"-"+type+"-password");
+            password.attr("class","glyphicon glyphicon-"+icon);
+            password.attr("style","color:"+color);
+            
+        }
+    }
+}
 jQuery(document).ready(function(){
     var ascioImporter = new AscioImporter();
     $("#calculate").click(function() {
@@ -94,5 +137,9 @@ jQuery(document).ready(function(){
     $("#update").click(function() {
         ascioInstaller = new AscioInstaller();
         ascioInstaller.update();
+    });
+    $("#validate").click(function() {
+        ascioSettings = new AscioSettings();
+        ascioSettings.validate();
     });
 })
