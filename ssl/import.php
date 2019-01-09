@@ -4,7 +4,10 @@ require_once("ProductImporter.php");
 
 
 header('Content-Type: application/json');
-
+if($_SESSION["adminid"] < 1) {
+    echo json_encode(["error" => "Invalid Session"] );
+    die();
+}
 
 use ascio\whmcs\ssl\Ssl;
 use ascio\whmcs\ssl\Params;

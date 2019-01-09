@@ -9,8 +9,10 @@ use ascio\whmcs\ssl\AscioSystemException;
 
 header('Content-Type: application/json');
 
-// todo: check admin user
-
+if($_SESSION["adminid"] < 1) {
+    echo json_encode(["error" => "Invalid Session"] );
+    die();
+}
 $_GET["action"] = "db";
 
 $git = "rendermani/ascio-ssl-whmcs-plugin";
