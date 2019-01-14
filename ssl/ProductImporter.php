@@ -17,10 +17,11 @@ class ProductImporter {
     private $margin;
     private $roundstep; 
     private $productIds; 
+    private $currencyId;
+    private $currency;
     public function __construct()
     {
-        $this->config = new ssl\CertificateConfig();
-        
+        $this->config = new ssl\CertificateConfig();        
     }
     public function readCSV($file) {        
         $contents = file_get_contents($file); 
@@ -72,7 +73,8 @@ class ProductImporter {
         $price = (float) $params[9];
         $cert->getPrices()->add($period,$price);
         $cert->currency = $params[10];
-        
+        $this->currency = $cert->currency;
+        $this->getCurrencyId();
         if(!isset($this->data[$cert->method])) {
             $this->data[$cert->method] = [];
         }     
@@ -290,7 +292,7 @@ class ProductImporter {
     }
     private function createSanPricing(ssl\CertConfig $cert) {
         $cert->getPrices()->calculate($this->margin,$this->roundstep);
-        $currency = $cert->currency = "EUR" ? 2 : 1;
+        $currency = $this->currencyId;
         $cert->currencyId = $currency;
         $table =  Capsule::table("tblpricing");
         $filter = [
@@ -317,7 +319,7 @@ class ProductImporter {
             $id = $table->insertGetId($data);
         }     
         return $id; 
-    }
+    }    
     private function createProductGroup(ssl\CertConfig $cert) {
         $table =  Capsule::table("tblproductgroups");
         $name = $cert->type . " SSL-Certificates";
@@ -339,6 +341,13 @@ class ProductImporter {
         } 
         $cert->productGroupId = $id;
         return $id; 
+    }    
+    private function getCurrencyId() {
+        if($this->currencyId) return $this->currencyId;        
+        $this->currencyId = Capsule::table("tblcurrencies")
+        ->where("code",$this->currency)        
+        ->value("id");
+        return $this->currencyId;
     }
     private function createProduct(ssl\CertConfig $cert) {
         $cert->getPrices()->calculate($this->margin,$this->roundstep);
@@ -347,8 +356,10 @@ class ProductImporter {
             "name" => $cert->name,
         ];
         $existing = $table->where($filter)->first();
-        $currency = $cert->currency = "EUR" ? 2 : 1;
-        $cert->currencyId = $currency;
+        $currencyId = $this->getCurrencyId();
+        if(!$currencyId) {
+            throw new AscioException("Currency with the code '".$cert->currency."' not found in WHMCS. Please add the Currency in Settings->Payments->Currencies");
+        }
         $data = [
             'type' => 'other',
             'gid' => $cert->productGroupId,
@@ -364,7 +375,7 @@ class ProductImporter {
             $filterPrice = [
                 "relid"=>$cert->productId,
                 "type" => "product",
-                "currency" => $currency
+                "currency" => $currencyId
             ]; 
             $tablePricing->where($filterPrice)
             ->update($cert->getPrices()->get());
@@ -372,7 +383,7 @@ class ProductImporter {
 
             
         } else {                     
-            $data["pricing"] = array($currency => $cert->getPrices()->get());
+            $data["pricing"] = array($currencyId => $cert->getPrices()->get());
             $data["module"] =   'asciossl';
             $data["configoption1"] =   $cert->id;
             $results = localAPI("AddProduct", $data);
