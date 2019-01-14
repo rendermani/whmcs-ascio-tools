@@ -105,7 +105,7 @@ class Controller {
         ';
         
         if(isset($_FILES['prices'])){
-            $errors= array();
+            $errors= false;
             $file_name = $_FILES['prices']['name'];
             $file_size =$_FILES['prices']['size'];
             $file_tmp =$_FILES['prices']['tmp_name'];
@@ -114,17 +114,20 @@ class Controller {
             $extensions= array("csv");
             
             if(in_array($file_ext,$extensions)=== false){
-               $errors[]="extension not allowed, please choose a JPEG or PNG file.";
+               return "Extension not allowed, please choose a JPEG or PNG file.";
             }            
-            if(empty($errors)==true){
-                $file = __DIR__."/../../import/products.csv";
-                move_uploaded_file($file_tmp,$file);                
-                $pi->readCSV($file);
-                echo $inputForm;
-                echo '<div id="preview">' . $pi->preview() . '</div>';             
-            }else{
-               print_r($errors);
+            $dir = realpath( __DIR__."/../..");
+            
+            $file = $dir."/import/products.csv";
+            if (!is_dir($dir."/import") && !mkdir($dir."/import", 0777, false)) {
+                var_dump($dir);
+                echo ('<div class="alert alert-danger" role="alert">Can\'t create '.$dir.'/import. Please check directory permissions</div>' );
             }
+
+            move_uploaded_file($file_tmp,$file);       
+            $pi->readCSV($file);
+            echo $inputForm;
+            echo '<div id="preview">' . $pi->preview() . '</div>';             
          }
     }
     /**
