@@ -4,11 +4,14 @@ namespace WHMCS\Module\Addon\AddonModule\Admin;
 require_once(__DIR__."/../../ssl/ProductImporter.php");
 require_once(__DIR__."/../../ssl/Installer/Installer.php");
 require_once(__DIR__."/../../lib/Settings.php");
+
 use ascio\whmcs\ssl\ProductImporter;
 use ascio\whmcs\ssl\Installer;
 use ascio\whmcs\tools\Settings;
 use ascio\whmcs\tools\SettingsTest;
-
+use Illuminate\Database\Capsule\Manager as Capsule;
+use ascio\ssl\CertConfig;
+use ascio\ssl\CertificateConfig;
 
 /**
  * Sample Admin Area Controller
@@ -131,7 +134,47 @@ class Controller {
          }
     }
     /**
-     * Show action.
+     * Failed orders action
+     */
+    
+    
+    public function displayFailedSslOrders (){
+        $data = Capsule::table('mod_asciossl')
+        ->select('whmcs_service_id','order_id','common_name','type','code','message','errors')
+        ->where("status","Failed")
+        ->get();
+        $table = '<h2>Failed orders</h2>
+        <table class="table">
+        <thead>
+            <tr>
+                <th>View</th>
+                <th>WHMCS</th>
+                <th>Domain</th>
+                <th>Certificate</th>
+                <th>Type</th>
+                <th>Code</th>
+                <th>Message</th>
+                <th>Errors</th>
+            </tr>
+        </thead>
+        <tbody>'; 
+        $config = new CertificateConfig();
+        foreach($data as $key => $row) {
+            $table .= '<tr>';
+            $cert = $config->get($row->type);
+            $row->type =  $cert->name . " (".$cert->type.")"; 
+            $row->whmcs_service_id = '<a href="/whmcs/admin/clientsservices.php?id='.$row->whmcs_service_id.'"><span title ="view" class="glyphicon glyphicon-zoom-in"> </span></a>';
+            foreach($row as $key => $field) {
+                $table .= '<td>'.$field.'</td>';
+            }
+            $table .= '</tr>';
+        }
+        $table .= '</tbody></table>';
+        echo $table; 
+    }
+
+    /**
+    * Show action.
      *
      * @param array $vars Module configuration parameters
      *

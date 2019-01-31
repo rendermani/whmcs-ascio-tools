@@ -199,6 +199,7 @@ function asciotools_sidebar($vars)
         <li><a href="'.$modulelink.'&action=install">Install/Update</a></li>
         <li><a href="'.$modulelink.'&action=settings">Settings</a></li>
         <li><a href="'.$modulelink.'&action=showUpload">Import Products</a></li>
+        <li><a href="'.$modulelink.'&action=displayFailedSslOrders">Failed Orders</a></li>
    ';    
     $sidebar .='<ul class="menu">'.$items.'</ul>';
     
