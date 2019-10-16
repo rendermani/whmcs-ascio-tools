@@ -1,6 +1,6 @@
-# Ascio Installer, Setting-Editor and Product importer
+# Ascio installer/updater, setting-editor and product-importer
 
-Right now only for SSL, but will be for all other Ascio-Plugins in future. 
+For now only for SSL, but will be for all other Ascio-Plugins in future. 
 
 ## Installation
 
