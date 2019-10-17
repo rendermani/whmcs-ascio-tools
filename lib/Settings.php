@@ -27,7 +27,7 @@ class Settings {
         $this->postVars = count($_POST) > 0  ? $_POST : false; 
         $this->table = $table; 
         if($this->postVars) {
-            unset($postVars["token"]);
+            unset($this->postVars["token"]);
             $this->readForm();           
             $this->writeDb();
         } else {
