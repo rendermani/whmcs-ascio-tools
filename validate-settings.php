@@ -31,6 +31,7 @@ class AccountValidation {
     }
     public function testDomainAccount () {
         $error = false; 
+        $result = "";
         try {      
             $sessionId = $this->settingsTest->login($this->testMode);
             $this->settingsTest->availability($this->testMode,$sessionId);
@@ -44,6 +45,7 @@ class AccountValidation {
     }
     public function testDnsAccount () {
         $error = false; 
+        $result = ""; 
         try {
             $this->settingsTest->dns();
             $result .=  "DNS Live OK<br/>";
