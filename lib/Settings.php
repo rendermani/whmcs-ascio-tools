@@ -1,4 +1,4 @@
-<?
+<?php
 namespace ascio\whmcs\tools;
 require_once("Error.php");
 require_once(__DIR__."/../../../../init.php");
