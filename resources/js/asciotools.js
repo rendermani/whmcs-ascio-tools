@@ -68,19 +68,21 @@ class AscioInstaller {
                     icon.removeClass("glyphicon-time");
                     icon.attr("style","color:darkred");                    
                 } else {
-                    element.html('<div style="color:darkgreen" role="alert">OK</div>');
+                    element.html('<div style="color:darkgreen" role="alert">Successfully updated.</div>');
                     icon.addClass("glyphicon-ok");
                     icon.removeClass("glyphicon-remove");
+                    icon.removeClass("glyphicon-time");
                     icon.attr("style","color:darkgreen");
                     $("#text-"+action).attr("style","color:darkgreen");
                     self.update(nr+1);
                 }
                 
+              }).fail(function() {
+                alert( "error" );
               }); 
 
         } else {
             $(".ascio-tools-links").show();
-
         }
         
     }
