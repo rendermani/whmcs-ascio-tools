@@ -40,10 +40,10 @@ class AscioImporter {
           }); 
     }
 }
-class AscioInstaller {
+class AscioInstaller {        
     update(nr) {
         var self = this;
-        if(!nr) nr = 0;         
+        if(!nr) nr = 0;           
         var element = $(".update-action")[nr]
         if(element) {
             element = $(element);
@@ -77,6 +77,9 @@ class AscioInstaller {
                 }
                 
               }); 
+
+        } else {
+            $(".ascio-tools-links").show();
 
         }
         

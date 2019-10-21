@@ -39,7 +39,7 @@ require_once(__DIR__."/lib/Admin/AdminDispatcher.php");
 require_once(__DIR__."/lib/Admin/Controller.php");
 use WHMCS\Module\Addon\AddonModule\Admin\AdminDispatcher;
 use WHMCS\Module\Addon\AddonModule\Client\ClientDispatcher;
-
+use Illuminate\Database\Capsule\Manager as Capsule;
 /**
  * Define addon module configuration parameters.
  *
@@ -128,16 +128,16 @@ function asciotools_upgrade($vars)
     $currentlyInstalledVersion = $vars['version'];
 
     /// Perform SQL schema changes required by the upgrade to version 1.1 of your module
-    if ($currentlyInstalledVersion < 1.1) {
-        $query = "ALTER `mod_asciotools` ADD `demo2` TEXT NOT NULL ";
-        full_query($query);
-    }
+    //if ($currentlyInstalledVersion < 1.1) {
+    //    $query = "ALTER `mod_asciotools` ADD `demo2` TEXT NOT NULL ";
+    //    full_query($query);
+    //}
 
     /// Perform SQL schema changes required by the upgrade to version 1.2 of your module
-    if ($currentlyInstalledVersion < 1.2) {
-        $query = "ALTER `mod_asciotools` ADD `demo3` TEXT NOT NULL ";
-        full_query($query);
-    }
+    //if ($currentlyInstalledVersion < 1.2) {
+    //    $query = "ALTER `mod_asciotools` ADD `demo3` TEXT NOT NULL ";
+    //     full_query($query);
+    //}
 }
 
 /**
@@ -195,15 +195,17 @@ function asciotools_sidebar($vars)
     $version = $vars['version'];
     $_lang = $vars['_lang'];
     $sidebar = '<span class="header"><img src="images/icons/addonmodules.png" class="absmiddle" width="16" height="16"> SSL</span>';
-    $items = '
-        <li><a href="'.$modulelink.'&action=install">Install/Update</a></li>
-        <li><a href="'.$modulelink.'&action=settings">Settings</a></li>
-        <li><a href="'.$modulelink.'&action=showUpload">Import Products</a></li>
-        <li><a href="'.$modulelink.'&action=displayFailedSslOrders">Failed Orders</a></li>
-   ';    
+    try {
+        Capsule::table("mod_asciossl_settings")->exists();             
+        $class = "";
+    } catch (PDOException $e) {
+        $style =' style="display:none"';
+    } 
+    $items =  '<li class="ascio-tools-links"><a href="'.$modulelink.'&action=install">Install/Update</a></li>
+    <li class="ascio-tools-links"'.$style.'><a href="'.$modulelink.'&action=settings">Settings</a></li>
+    <li class="ascio-tools-links"'.$style.'><a href="'.$modulelink.'&action=showUpload">Import Products</a></li>
+    <li class="ascio-tools-links"'.$style.'><a href="'.$modulelink.'&action=displayFailedSslOrders">Failed Orders</a></li>';
     $sidebar .='<ul class="menu">'.$items.'</ul>';
-    
-    
     return $sidebar;
 }
 
