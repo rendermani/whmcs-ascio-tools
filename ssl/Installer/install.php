@@ -13,8 +13,6 @@ if($_SESSION["adminid"] < 1) {
     echo json_encode(["error" => "Invalid Session"] );
     die();
 }
-$_GET["action"] = "db";
-
 $git = "rendermani/ascio-ssl-whmcs-plugin";
 $local = __DIR__."/../../../../servers/asciossl";
 $installer = new Installer($git,$local,$_GET["module"]); 

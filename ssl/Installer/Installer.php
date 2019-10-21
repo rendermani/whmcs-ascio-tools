@@ -22,14 +22,11 @@ class Installer {
     protected $gitClone; 
     protected $module;
     protected $localPath;
-    protected $localRelPath;
     public function __construct($gitBase,$localPath,$module)
     {   
         $this->gitBase = "https://raw.githubusercontent.com/".$gitBase."/master"; 
         $this->gitClone = "https://github.com/".$gitBase."/archive/master.zip";
         $this->localPath = realpath($localPath);
-        $this->localRelPath = "/modules/".explode("/modules/",$this->localPath)[1];
-        
         $this->module = $module; 
         $gitUrl = $this->gitBase."/module.json";
         $this->fsVersions = new FsVersions("ssl",$gitUrl,$localPath);
@@ -72,12 +69,20 @@ class Installer {
         $res = $zip->open($zipLocation);
         if ($res === TRUE) {
             $dir = $this->localPath; 
-            $di = new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS);
-            $ri = new \RecursiveIteratorIterator($di, \RecursiveIteratorIterator::CHILD_FIRST);
-            foreach ( $ri as $file ) {
-                $file->isDir() ?  rmdir($file) : unlink($file);
-           }
-            $zip->extractSubdirTo($this->localPath,"ascio-ssl-whmcs-plugin-master");                                 
+            // delete old 
+            if(file_exists($dir)) {
+                $di = new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS);
+                $ri = new \RecursiveIteratorIterator($di, \RecursiveIteratorIterator::CHILD_FIRST);
+                foreach ( $ri as $file ) {
+                    $file->isDir() ?  rmdir($file) : unlink($file);
+               }
+            } else {
+                if (!mkdir($dir)) {
+                    throw new AscioException("Can't create ".$dir,401);
+                }
+            }
+           // extract file 
+           $zip->extractSubdirTo($this->localPath,"ascio-ssl-whmcs-plugin-master");                                 
             $zip->close();
         } else {
             throw new AscioException("Wrong permissions while extracting zip",401);
@@ -231,9 +236,9 @@ class Requirement {
              $color = "darkred";
         }
         return  '
-            <div class="row" >
+            <div class="row installer-task" >
                 <div class="col-sm-1" style="width:20px;color:'.$color.'"><span id="icon-'.$this->action.'" class="glyphicon glyphicon-'.$icon.'"> </span></div>
-                <div class="col-sm-4" style="color:'.$color.'" id="text-'.$this->action.'" >'.$this->text.'</div>
+                <div class="ol-sm-11 col-md-5 col-lg-4" style="color:'.$color.'" id="text-'.$this->action.'" >'.$this->text.'</div>
                 '.$this->getAction().$this->getInstructions().'
             </div>
             ';    
@@ -267,7 +272,6 @@ class Requirement {
 }
 class Zipper extends \ZipArchive {     
     public function addDir($path) { 
-        print 'adding ' . $path . "\n"; 
         $this->addEmptyDir($this->getRelPath($path)); 
         $nodes = glob($path . '/*'); 
         foreach ($nodes as $node) { 

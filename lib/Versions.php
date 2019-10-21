@@ -17,23 +17,25 @@ class Versions {
     protected $localPath;     
     function __construct($moduleId,$gitUrl,$localPath)
     {
+        $storageType = $this->storageType;  
         $this->localPath = $localPath;
         $file = $localPath."/module.json";        
         $cfg = file_get_contents($file);
-        if(!$cfg) throw new AscioSystemException("File not found ".$file);                   
-        $this->moduleConfig = json_decode($cfg);
-
+        if($cfg) {
+            $this->moduleConfig = json_decode($cfg);
+            $this->localVersion = reset($this->moduleConfig->$storageType->versions)->version;        
+        } else {
+            $this->localVersion = 0;
+        }
         $cfg = file_get_contents($gitUrl);   
         if(!$cfg) throw new AscioSystemException("URL not found ".$gitUrl);                   
         $this->remoteModuleConfig = json_decode($cfg);
         
-        $storageType = $this->storageType;         
+               
         $versions = $this->remoteModuleConfig->$storageType->versions;
-
-        $this->localVersion = reset($this->moduleConfig->$storageType->versions)->version;        
+        
         $this->remoteVersion = reset($versions)->version;
         $this->remoteVersions = $versions;
-
         foreach($versions as $key => $version) {
             $this->versions["v".$version->version] = new Version($this->getLocalVersion(),$version->version);            
         }
@@ -52,8 +54,6 @@ class Versions {
         return !$this->needsUpdate();
     }
     public function getStatus() {
-        $v = reset($this->versions)->remote; 
-
         return "Local: ".$this->getLocalVersion().", Remote: ".$this->remoteVersion;
     }
     public function getUpdates() {
@@ -103,9 +103,6 @@ class DbVersions extends Versions {
             ->where(["TABLE_NAME"=>$defaultTable])
             ->first();
             if($v) $this->localVersion = 0.1;
-        }
-        foreach($versions as $key => $version) {
-            $this->versions["v".$version->version] = new Version($this->getLocalVersion(),$version->version);            
         }
         $this->dbReadComplete = true;
         return $this->localVersion;
