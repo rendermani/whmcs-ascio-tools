@@ -123,7 +123,6 @@ class Controller {
             
             $file = $dir."/import/products.csv";
             if (!is_dir($dir."/import") && !mkdir($dir."/import", 0777, false)) {
-                var_dump($dir);
                 echo ('<div class="alert alert-danger" role="alert">Can\'t create '.$dir.'/import. Please check directory permissions</div>' );
             }
 
